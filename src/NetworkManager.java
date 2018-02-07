@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.PriorityQueue;
@@ -30,9 +31,22 @@ public class NetworkManager {
     }
 
     //Send a message via TcpClient
-    public void sendTestMessage(String message) {
+    public String sendTestMessage(String message, String targetHost, int targetPort) {
         TcpClient SampleClientObj = new TcpClient();
-        SampleClientObj.go(message);
+        return SampleClientObj.go(message, targetHost, targetPort);
+    }
+
+    //Keep sending message to a target until it is up
+    public boolean nodeReady(String targetHost, int targetPort) {
+        while(true) {
+            String rsp1 = sendTestMessage("Test hello", targetHost, targetPort);
+            System.out.println("Sending ping message");
+            if(rsp1 != null) {
+                System.out.println("Server Response is: " + rsp1);
+                break;
+            }
+        }
+        return true;
     }
 
     class TcpMServer implements Runnable {
@@ -98,45 +112,43 @@ public class NetworkManager {
             }
         }
     }
+
     class TcpClient {
 
-        public void go(String input) {
+        public String go(String input, String targetHost, int targetPort) {
 
-            String message;
+            String ServerMessage;
             BufferedReader reader = null;
             PrintWriter writer = null;
 
-            try	{
-                // Create a client socket and connect to server at 127.0.0.1 port 5000
-                Socket clientSocket = new Socket(hostname,portNumber);
+            try {
+                // Create a client socket and connect to server at @targetHost and @targetPort
+                Socket clientSocket = new Socket(targetHost, targetPort);
 
-			/* Create BufferedReader to read messages from server. Input stream is in bytes.
-				They are converted to characters by InputStreamReader.
-				Characters from the InputStreamReader are converted to buffered characters by BufferedReader.
-				This is done for efficiency purpose.
-			*/
+                /* Create BufferedReader to read messages from server. Input stream is in bytes.
+                    They are converted to characters by InputStreamReader.
+                    Characters from the InputStreamReader are converted to buffered characters by BufferedReader.
+                    This is done for efficiency purpose.
+                */
                 reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
                 // PrintWriter is a bridge between character data and the socket's low-level output stream
                 writer = new PrintWriter(clientSocket.getOutputStream(), true);
-
-            } catch(IOException ex) {
-                ex.printStackTrace();
+            } catch (IOException ex) {
+                if (!(ex instanceof ConnectException)) {
+                    ex.printStackTrace();
+                }
+                return null;
             }
 
             try {
                 writer.println(input);
-                message = reader.readLine(); // Server response
+                ServerMessage = reader.readLine(); // Server response
+                return ServerMessage;
             } catch(IOException e) {
                 System.out.println("Read failed");
-                System.exit(100);
             }
+            return null;
         }
-
-//        public static void main(String args[]) {
-//            TcpClient SampleClientObj = new TcpClient();
-//            SampleClientObj.go();
-//            while(true);
-//        }
     }
 }
