@@ -1,5 +1,4 @@
 import java.io.IOException;
-import java.net.InetAddress;
 import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,19 +6,25 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.util.StringTokenizer;
+import java.util.HashMap;
 
-public class ConfigManager {
-    public static void main(String args[]) throws IOException {
-        String filepath = args[0];  // this may be relative path as well
+public class ConfigReader {
+    public static HashMap<String, Config> getConfig(String filepath) throws IOException {
         System.out.println(String.format("Input config file to read: %s", filepath));
-
-        // we need the hostname of machine to assign node ID
-        String hostname = InetAddress.getLocalHost().getHostName();
-        System.out.println(String.format("I am running on machine %s", hostname));
 
         // more about Path and Paths: https://docs.oracle.com/javase/tutorial/essential/io/pathOps.html
         // using it here so that we get proper error when config file is missing
         Path p = Paths.get(filepath);
+
+        // we will be returning these
+        int UID = 0;
+        String HostName = "";
+        int Port = 0;
+        ArrayList<Integer> Neighbors = new ArrayList<>();
+
+        HashMap<String, Config> Nodes = new HashMap<>();
+
+        Config c;
         try {
             Path fp = p.toRealPath();
 
@@ -54,10 +59,6 @@ public class ConfigManager {
                      * If Hostname is in current machine's hostname (retrieved earlier),
                      *  launch HomeworkDriver
                      */
-                    int UID = 0;
-                    String HostName = "";
-                    int Port = 0;
-                    List<String> Neighbors = new ArrayList<>();
 
                     String delimeter = " ";
                     StringTokenizer st = new StringTokenizer(contents, delimeter);
@@ -75,21 +76,20 @@ public class ConfigManager {
                                 Port = Integer.parseInt(st.nextToken());
                                 break;
                             default:
-                                Neighbors.add(st.nextToken());
+                                Neighbors.add(Integer.parseInt(st.nextToken()));
                         }
                         count++;
                     }
 
-                    // compare Hostname string with hostname we obtained earlier and if they match,
-                    // TODO: launch HomeworkDriver class
-                    if (hostname.toLowerCase().contains(HostName.toLowerCase())) {
-                        System.out.println(String.format("Launching with UID %d, will listen on port %d", UID, Port));
-                        System.out.println(String.format("Neighboring nodes are %s", Neighbors.toString()));
-                    }
+                    // add our config object to list of nodes
+                    c = new Config(UID, HostName, Port, Neighbors);
+                    Nodes.put(HostName.toLowerCase(), c);
                 }
             }
         } catch (NoSuchFileException x) {
             System.err.format("%s: no such" + "file or directory %n", p.toAbsolutePath());
         }
+
+        return Nodes;
     }
 }
