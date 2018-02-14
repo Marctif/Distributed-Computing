@@ -36,10 +36,16 @@ public class NetworkManager {
         return SampleClientObj.go(message, targetHost, targetPort);
     }
 
+    public String sendTestMessage(Message message, String targetHost, int targetPort) {
+        TcpClient SampleClientObj = new TcpClient();
+        return SampleClientObj.go(message, targetHost, targetPort);
+    }
+
     //Keep sending message to a target until it is up
     public boolean nodeReady(String targetHost, int targetPort) {
         while(true) {
-            String rsp1 = sendTestMessage("Test hello", targetHost, targetPort);
+            Message message = new Message(10, 7, 55);
+            String rsp1 = sendTestMessage(message, targetHost, targetPort);
             System.out.println("Sending ping message");
             if(rsp1 != null) {
                 System.out.println("Server Response is: " + rsp1);
@@ -100,7 +106,7 @@ public class NetworkManager {
                     // send data back to the client
                     messageQueue.add(line);
                     String line2 = "Hello From Server";
-                    out.println(line2);
+                    out.println(line);
                     // System.out.println("Message sent to client");
 
                     line = in.readLine();
@@ -144,6 +150,47 @@ public class NetworkManager {
             try {
                 writer.println(input);
                 ServerMessage = reader.readLine(); // Server response
+                return ServerMessage;
+            } catch(IOException e) {
+                System.out.println("Read failed");
+            }
+            return null;
+        }
+
+        public String go(Message message, String targetHost, int targetPort) {
+
+            String ServerMessage;
+            BufferedReader reader = null;
+            PrintWriter writer = null;
+
+            try {
+                // Create a client socket and connect to server at @targetHost and @targetPort
+                Socket clientSocket = new Socket(targetHost, targetPort);
+
+                /* Create BufferedReader to read messages from server. Input stream is in bytes.
+                    They are converted to characters by InputStreamReader.
+                    Characters from the InputStreamReader are converted to buffered characters by BufferedReader.
+                    This is done for efficiency purpose.
+                */
+                reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+                // PrintWriter is a bridge between character data and the socket's low-level output stream
+                writer = new PrintWriter(clientSocket.getOutputStream(), true);
+            } catch (IOException ex) {
+                if (!(ex instanceof ConnectException)) {
+                    ex.printStackTrace();
+                }
+                return null;
+            }
+
+            try {
+                writer.println(message);
+                ServerMessage = reader.readLine(); // Server response
+                String[] splitMessage = ServerMessage.split(" ");
+                int maxUID = Integer.parseInt(splitMessage[1]);
+                int maxDist = Integer.parseInt(splitMessage[3]);
+                int roundNumber = Integer.parseInt(splitMessage[5]);
+                Message receivedMessage = new Message(maxUID, maxDist, roundNumber);
                 return ServerMessage;
             } catch(IOException e) {
                 System.out.println("Read failed");
