@@ -186,11 +186,8 @@ public class NetworkManager {
             try {
                 writer.println(message);
                 ServerMessage = reader.readLine(); // Server response
-                String[] splitMessage = ServerMessage.split(" ");
-                int maxUID = Integer.parseInt(splitMessage[1]);
-                int maxDist = Integer.parseInt(splitMessage[3]);
-                int roundNumber = Integer.parseInt(splitMessage[5]);
-                Message receivedMessage = new Message(maxUID, maxDist, roundNumber);
+                Message receivedMessage = new Message(ServerMessage);                
+
                 return ServerMessage;
             } catch(IOException e) {
                 System.out.println("Read failed");
