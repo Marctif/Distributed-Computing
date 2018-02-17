@@ -10,6 +10,14 @@ public class Message
 		this.roundNumber = roundNumber;
 	}
 
+	public Message(String ServerMessage)
+	{
+		String[] splitMessage = ServerMessage.split(" ");
+        	this.maxUID = Integer.parseInt(splitMessage[1]);
+        	this.maxDist = Integer.parseInt(splitMessage[3]);
+        	this.roundNumber = Integer.parseInt(splitMessage[5]);
+	}
+
 	public int getMaxUID()
 	{
 		return maxUID;
