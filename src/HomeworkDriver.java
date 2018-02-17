@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.HashMap;
+import java.util.PriorityQueue;
 
 /**
  * Created by Marc Tifrea on 2/6/2018.
@@ -15,12 +16,16 @@ public class HomeworkDriver {
         String configfile = args[0];
         String hostname = "";
         Config ownConfig = null;
+        HashMap<String, Config> nodesByHostname;
+        HashMap<String, Config> nodesByID;
         try {
             // get own hostname. This is required to find which node this is
             hostname = InetAddress.getLocalHost().getHostName();
             System.out.println(String.format("I am running on machine %s", hostname));
 
-            HashMap<String, Config> nodes = ConfigReader.getConfig(configfile);
+            HashMap<String, HashMap<String, Config>> nodes = ConfigReader.getConfig(configfile);
+            nodesByHostname = nodes.get("hostname");
+            nodesByID = nodes.get("id");
 
             // Going to get own port and entry
             // We need to get the first part of hostname though
@@ -31,7 +36,7 @@ public class HomeworkDriver {
 
             if (firstDot != -1) {
                 hostname = hostname.substring(0, firstDot).toLowerCase();
-                ownConfig = nodes.get(hostname);
+                ownConfig = nodesByHostname.get(hostname);
             }
         } catch (IOException e) {
             System.err.println("An error occured while reading the file");
@@ -45,7 +50,6 @@ public class HomeworkDriver {
         } catch (NullPointerException e) {
             System.err.println(String.format("Error! Could not find hostname in config file for %s.", hostname));
         }
-
 
         System.out.println(String.format("Launching with UID %d, listening at port %d", ownUID, ownPort));
 

@@ -9,7 +9,7 @@ import java.util.StringTokenizer;
 import java.util.HashMap;
 
 public class ConfigReader {
-    public static HashMap<String, Config> getConfig(String filepath) throws IOException {
+    public static HashMap<String, HashMap<String, Config>> getConfig(String filepath) throws IOException {
         System.out.println(String.format("Input config file to read: %s", filepath));
 
         // more about Path and Paths: https://docs.oracle.com/javase/tutorial/essential/io/pathOps.html
@@ -20,9 +20,10 @@ public class ConfigReader {
         int UID = 0;
         String HostName = "";
         int Port = 0;
-        ArrayList<Integer> Neighbors = new ArrayList<>();
 
-        HashMap<String, Config> Nodes = new HashMap<>();
+        HashMap<String, HashMap<String, Config>> Nodes = new HashMap<>();
+        HashMap<String, Config> NodesByHostname = new HashMap<>();
+        HashMap<String, Config> NodesByID = new HashMap<>();
 
         Config c;
         try {
@@ -63,6 +64,9 @@ public class ConfigReader {
                     String delimeter = " ";
                     StringTokenizer st = new StringTokenizer(contents, delimeter);
 
+                    // Neighbors are initialised here because it needs to reset every loop
+                    ArrayList<Integer> Neighbors = new ArrayList<>();
+
                     int count = 0;
                     while (st.hasMoreTokens()) {
                         switch (count) {
@@ -82,13 +86,16 @@ public class ConfigReader {
                     }
 
                     // add our config object to list of nodes
-                    c = new Config(UID, HostName, Port, Neighbors);
-                    Nodes.put(HostName.toLowerCase(), c);
+                    NodesByHostname.put(HostName.toLowerCase(), new Config(UID, HostName, Port, Neighbors));
+                    NodesByID.put(Integer.toString(UID), new Config(UID, HostName, Port, Neighbors));
                 }
             }
         } catch (NoSuchFileException x) {
             System.err.format("%s: no such" + "file or directory %n", p.toAbsolutePath());
         }
+
+        Nodes.put("hostname", NodesByHostname);
+        Nodes.put("id", NodesByID);
 
         return Nodes;
     }
