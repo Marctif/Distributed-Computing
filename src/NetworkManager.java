@@ -46,7 +46,7 @@ public class NetworkManager {
         while(true) {
             Message message = new Message(10, 7, 55);
             String rsp1 = sendTestMessage(message, targetHost, targetPort);
-            System.out.println("Sending ping message");
+            System.out.println("Sending ping message to " + targetHost + ":" + targetPort);
             if(rsp1 != null) {
                 System.out.println("Server Response is: " + rsp1);
                 break;
@@ -165,6 +165,7 @@ public class NetworkManager {
 
             try {
                 // Create a client socket and connect to server at @targetHost and @targetPort
+
                 Socket clientSocket = new Socket(targetHost, targetPort);
 
                 /* Create BufferedReader to read messages from server. Input stream is in bytes.

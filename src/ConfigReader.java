@@ -35,6 +35,8 @@ public class ConfigReader {
 
             // flag to ignore first line
             boolean foundFirst = false;
+            int numNodes = 0;
+            int read = 0;
 
             for (String s : lines) {
                 // ignoring blank lines & those starting with a hash
@@ -42,8 +44,10 @@ public class ConfigReader {
                     // first value is number of nodes. This isn't used anywhere
                     if (!foundFirst) {
                         foundFirst = true;
+                        numNodes = Integer.parseInt(s);
                         continue;
                     }
+
 
                     // cleaning the string a bit
                     // removing extra spaces & tabs
@@ -68,22 +72,33 @@ public class ConfigReader {
                     ArrayList<Integer> Neighbors = new ArrayList<>();
 
                     int count = 0;
-                    while (st.hasMoreTokens()) {
-                        switch (count) {
-                            case 0:
-                                UID = Integer.parseInt(st.nextToken());
-                                break;
-                            case 1:
-                                HostName = st.nextToken();
-                                break;
-                            case 2:
-                                Port = Integer.parseInt(st.nextToken());
-                                break;
-                            default:
-                                Neighbors.add(Integer.parseInt(st.nextToken()));
+
+                    if(read < numNodes) {
+                        while (st.hasMoreTokens()) {
+                            switch (count) {
+                                case 0:
+                                    UID = Integer.parseInt(st.nextToken());
+                                    break;
+                                case 1:
+                                    HostName = st.nextToken();
+                                    break;
+                                default:
+                                    Port = Integer.parseInt(st.nextToken());
+                                    break;
+//                            default:
+//                                Neighbors.add(Integer.parseInt(st.nextToken()));
+                            }
+                            count++;
                         }
-                        count++;
+                    } else {
+                        //Handle neighbors
+                        int targetUID = Integer.parseInt(st.nextToken());
+                        while (st.hasMoreTokens()) {
+                            Neighbors.add(Integer.parseInt(st.nextToken()));
+                        }
+                        NodesByID.get(Integer.toString(targetUID)).setNeighbors(Neighbors);
                     }
+                    read++;
 
                     // add our config object to list of nodes
                     NodesByHostname.put(HostName.toLowerCase(), new Config(UID, HostName, Port, Neighbors));

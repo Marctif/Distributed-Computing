@@ -7,7 +7,7 @@ final class Config {
     private final int UID;
     private final String hostname;
     private final int port;
-    private final ArrayList<Integer> Neighbors;
+    private ArrayList<Integer> Neighbors;
 
     Config(int UID, String hostname, int port, ArrayList<Integer> Neighbors) {
         this.UID = UID;
@@ -31,5 +31,6 @@ final class Config {
     public ArrayList<Integer> getNeighbors() {
         return this.Neighbors;
     }
+    public void setNeighbors(ArrayList<Integer> neighbors) { this.Neighbors = neighbors; }
 
 }
