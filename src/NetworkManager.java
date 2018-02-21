@@ -5,21 +5,22 @@ import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.PriorityQueue;
+import java.util.LinkedList;
+import java.util.Queue;
 
 
 public class NetworkManager {
     private int portNumber;
     private String hostname;
-    private PriorityQueue<String> messageQueue;
+    private Queue<String> messageQueue;
 
     public NetworkManager(String hostname, int portNumber) {
         this.portNumber = portNumber;
         this.hostname = hostname;
-        messageQueue = new PriorityQueue<String>();
+        messageQueue = new LinkedList<String>();
     }
 
-    public PriorityQueue<String> getMessageQueue(){
+    public Queue<String> getMessageQueue(){
         return messageQueue;
     }
 
@@ -44,11 +45,11 @@ public class NetworkManager {
     //Keep sending message to a target until it is up
     public boolean nodeReady(String targetHost, int targetPort) {
         while(true) {
-            Message message = new Message(10, 7, 55);
+            Message message = new Message(10, 7, 999999);
             String rsp1 = sendTestMessage(message, targetHost, targetPort);
-            System.out.println("Sending ping message to " + targetHost + ":" + targetPort);
+             // System.out.println("Sending ping message to " + targetHost + ":" + targetPort);
             if(rsp1 != null) {
-                System.out.println("Server Response is: " + rsp1);
+                // System.out.println("Server Response is: " + rsp1);
                 break;
             }
         }
@@ -104,7 +105,12 @@ public class NetworkManager {
 
                     // System.out.println(line);
                     // send data back to the client
-                    messageQueue.add(line);
+                    Message m = new Message((line));
+                    if (m.getRoundNumber() != 999999)  { //Ignore test message TODO better handeling
+                        //System.out.println("SERVER " + line);
+                        messageQueue.add(line);
+                }
+
                     String line2 = "Hello From Server";
                     out.println(line);
                     // System.out.println("Message sent to client");

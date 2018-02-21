@@ -3,6 +3,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.PriorityQueue;
+import java.util.Queue;
 
 /**
  * Created by Marc Tifrea on 2/6/2018.
@@ -52,12 +53,59 @@ public class HomeworkDriver {
                 System.out.println("Child at " + targetNodeHostname + " " + targetNodePort + " is ready for messages");
         }
 
-        // String rsp2 = network.sendTestMessage("Test hello #2",hostName, targetPort);
-//        while (true) {
-//            PriorityQueue<String> queue = network.getMessageQueue();
-//            if (queue.peek() != null) {
-//                System.out.println(queue.poll());
+        System.out.println(ownUID + " at " + ownHostname + ":" + ownPort + " has connected to all neighbors");
+
+        /**
+         * Peleg's Algorithm
+         */
+        int rounds = 3;
+        int numNeighbors = ownNeighbors.size();
+        int maxUID = ownUID;
+
+        for(int x = 1; x <= rounds; x++){
+            Message message = new Message(maxUID, 0, x);
+
+            // Message all neighbors
+            for(int i = 0; i < ownNeighbors.size(); i++) {
+                Config targetNodeConfig = nodesByID.get(Integer.toString(ownNeighbors.get(i)));
+                int targetNodePort = targetNodeConfig.getPort();
+                String targetNodeHostname = targetNodeConfig.getHostname();
+                String rsp = network.sendTestMessage(message,targetNodeHostname, targetNodePort);
+                System.out.println("RESP: " + targetNodeHostname + " - " + rsp);
+            }
+
+            int recieved = 0;
+            while(true) {
+                // Print all messages
+                System.out.println("waiting for messages"); //Keep this in (things got out of sync when it was left out IDK why)
+                Queue<String> queue = network.getMessageQueue();
+                if (queue.peek() != null) {
+                    String stringMessage = queue.poll();
+                    Message m = new Message(stringMessage);
+                    System.out.println("MESSAGE: " + stringMessage);
+                    if (m.getRoundNumber() == x) { //Message from current round
+                        recieved++;
+                        if (m.getMaxUID() > maxUID)
+                            maxUID = m.getMaxUID();
+                    } else { //Push message back into queue for later
+                        queue.add(stringMessage);
+                    }
+                }
+                if(recieved >= numNeighbors)
+                    break;
+            }
+        }
+        System.out.println("The max UID is: " + maxUID);
+
+        while(true){ //To keep everything running
+
+        }
+            // String rsp2 = network.sendTestMessage("Test hello #2",hostName, targetPort);
+//            while (true) {
+//                PriorityQueue<String> queue = network.getMessageQueue();
+//                if (queue.peek() != null) {
+//                    System.out.println(queue.poll());
+//                }
 //            }
-//        }
     }
 }
