@@ -58,12 +58,21 @@ public class HomeworkDriver {
         /**
          * Peleg's Algorithm
          */
-        int rounds = 3;
+        int rounds = 10;
         int numNeighbors = ownNeighbors.size();
         int maxUID = ownUID;
 
+        int diam = 0;
+
+        int breakCount = 0;
+
         for(int x = 1; x <= rounds; x++){
-            Message message = new Message(maxUID, 0, x);
+            //System.out.println("ROUND " + x + ": maxUID: " + maxUID + " | maxDiam: " + diam);
+            int prevDiam = diam;
+            Message message = new Message(maxUID, diam, x);
+            network.getMessageList().add(message);
+
+            ArrayList<Message> roundMessages = new ArrayList<Message>();
 
             // Message all neighbors
             for(int i = 0; i < ownNeighbors.size(); i++) {
@@ -71,22 +80,51 @@ public class HomeworkDriver {
                 int targetNodePort = targetNodeConfig.getPort();
                 String targetNodeHostname = targetNodeConfig.getHostname();
                 String rsp = network.sendTestMessage(message,targetNodeHostname, targetNodePort);
-                System.out.println("RESP: " + targetNodeHostname + " - " + rsp);
+                //System.out.println("RESP: " + targetNodeHostname + " - " + rsp);
+                Message rspMessage = new Message(rsp);
+                roundMessages.add(rspMessage);
             }
 
+            for(Message m : roundMessages){
+                if(m.getMaxUID() > maxUID){
+                    maxUID = m.getMaxUID();
+                    diam = m.getMaxDist() + 1;
+                }
+                if (m.getMaxDist() > diam)
+                    diam = m.getMaxDist();
+            }
+
+            if(prevDiam == diam){
+                breakCount++;
+            } else {
+                breakCount = 0;
+            }
+            if(breakCount > 3){
+                network.finishedPeleg();
+                break;
+            }
+
+            System.out.println("ROUND " + x + ": maxUID: " + maxUID + " | maxDiam: " + diam);
+
+
+            /*
             int recieved = 0;
             while(true) {
                 // Print all messages
-                System.out.println("waiting for messages"); //Keep this in (things got out of sync when it was left out IDK why)
+                System.out.println(ownUID + " : waiting for messages"); //Keep this in (things got out of sync when it was left out IDK why)
                 Queue<String> queue = network.getMessageQueue();
                 if (queue.peek() != null) {
                     String stringMessage = queue.poll();
                     Message m = new Message(stringMessage);
-                    System.out.println("MESSAGE: " + stringMessage);
+
                     if (m.getRoundNumber() == x) { //Message from current round
+                        System.out.println("MESSAGE: " + stringMessage);
                         recieved++;
-                        if (m.getMaxUID() > maxUID)
+                        if (m.getMaxUID() > maxUID) {
                             maxUID = m.getMaxUID();
+                            diam = m.getMaxDist() + 1;
+                        }
+                        diam = Math.max(diam, m.getMaxDist());
                     } else { //Push message back into queue for later
                         queue.add(stringMessage);
                     }
@@ -94,8 +132,18 @@ public class HomeworkDriver {
                 if(recieved >= numNeighbors)
                     break;
             }
+            */
+//            System.out.println(diam + " | " + prevDiam + " | " + breakCount);
+//            if(diam == prevDiam) {
+//                breakCount++;
+//                if(breakCount > 3)
+//                    break;
+//            } else {
+//                prevDiam = diam;
+//                breakCount = 0;
+//            }
         }
-        System.out.println("The max UID is: " + maxUID);
+        System.out.println("The max UID is: " + maxUID + " and my diam is :" + diam);
 
         while(true){ //To keep everything running
 

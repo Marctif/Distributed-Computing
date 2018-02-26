@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -13,16 +14,24 @@ public class NetworkManager {
     private int portNumber;
     private String hostname;
     private Queue<String> messageQueue;
+    private ArrayList<Message> messageList;
+    private boolean pelegDone = false;
 
     public NetworkManager(String hostname, int portNumber) {
         this.portNumber = portNumber;
         this.hostname = hostname;
         messageQueue = new LinkedList<String>();
+        messageList = new ArrayList<Message>();
     }
 
     public Queue<String> getMessageQueue(){
         return messageQueue;
     }
+    public ArrayList<Message> getMessageList() { return messageList; }
+    public void finishedPeleg(){
+        pelegDone = true;
+    }
+
 
     // Start a thread for the server
     public void startServer(){
@@ -109,10 +118,26 @@ public class NetworkManager {
                     if (m.getRoundNumber() != 999999)  { //Ignore test message TODO better handeling
                         //System.out.println("SERVER " + line);
                         messageQueue.add(line);
-                }
 
-                    String line2 = "Hello From Server";
-                    out.println(line);
+                    /**
+                     * TODO add array list of values for round and reply with your stuff not the line
+                     *
+                     */
+                    while(true) {
+                        try{
+                            if(!pelegDone)
+                                out.println(messageList.get(m.getRoundNumber() - 1));
+                            else
+                                out.println(messageList.get(messageList.size() - 1));
+                        break;}
+                        catch(IndexOutOfBoundsException ex){
+
+                        }
+                    }
+                    } else {
+                        out.println(line);
+                    }
+                    //out.println(line);
                     // System.out.println("Message sent to client");
 
                     line = in.readLine();
