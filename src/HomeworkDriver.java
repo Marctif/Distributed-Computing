@@ -10,13 +10,13 @@ import java.util.Queue;
  */
 public class HomeworkDriver {
     public static void main(String args[]) {
-        String configfile = "config.txt";
+        String configFile = "config.txt";
         String hostname = "";
         Config ownConfig = null;
         HashMap<String, Config> nodesByHostname;
         HashMap<String, Config> nodesByID = null;
         try {
-            HashMap<String, HashMap<String, Config>> nodes = ConfigReader.getConfig(configfile);
+            HashMap<String, HashMap<String, Config>> nodes = ConfigReader.getConfig(configFile);
             nodesByID = nodes.get("id");
             ownConfig = nodesByID.get(args[0]);
         } catch (IOException e) {
@@ -30,7 +30,7 @@ public class HomeworkDriver {
         try {
             ownUID = ownConfig.getUID();
             ownPort = ownConfig.getPort();
-            ownHostname = ownConfig.getHostname() + ".utdallas.edu"; // hostname only contains dcXX part
+            ownHostname = ownConfig.getHostname(); // hostname only contains dcXX part
             ownNeighbors = ownConfig.getNeighbors();
         } catch (NullPointerException e) {
             System.err.println(String.format("Error! Could not find hostname in config file for %s.", hostname));

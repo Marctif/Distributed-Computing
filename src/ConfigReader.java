@@ -107,6 +107,12 @@ public class ConfigReader {
             }
         } catch (NoSuchFileException x) {
             System.err.format("%s: no such" + "file or directory %n", p.toAbsolutePath());
+            x.printStackTrace();
+            System.exit(1);
+        } catch (Exception e) {
+            System.err.format("An exception occurred when reading config file. Details: %s", e.toString());
+            e.printStackTrace();
+            System.exit(1);
         }
 
         Nodes.put("hostname", NodesByHostname);
