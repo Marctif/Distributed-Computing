@@ -42,7 +42,7 @@ public class HomeworkDriver {
         network.startServer();
 
         // Message all neighbors
-        for(int i = 0; i < ownNeighbors.size(); i++) {
+        for (int i = 0; i < ownNeighbors.size(); i++) {
             Config targetNodeConfig = nodesByID.get(Integer.toString(ownNeighbors.get(i)));
             int targetNodeUID = targetNodeConfig.getUID();
             int targetNodePort = targetNodeConfig.getPort();
@@ -55,7 +55,7 @@ public class HomeworkDriver {
 
         System.out.println(ownUID + " at " + ownHostname + ":" + ownPort + " has connected to all neighbors");
 
-        /**
+        /*
          * Peleg's Algorithm
          */
         int rounds = 10;
@@ -66,7 +66,7 @@ public class HomeworkDriver {
 
         int breakCount = 0;
 
-        for(int x = 1; x <= rounds; x++){
+        for (int x = 1; x <= rounds; x++) {
             //System.out.println("ROUND " + x + ": maxUID: " + maxUID + " | maxDiam: " + diam);
             int prevDiam = diam;
             Message message = new Message(maxUID, diam, x);
@@ -75,18 +75,18 @@ public class HomeworkDriver {
             ArrayList<Message> roundMessages = new ArrayList<Message>();
 
             // Message all neighbors
-            for(int i = 0; i < ownNeighbors.size(); i++) {
+            for (int i = 0; i < ownNeighbors.size(); i++) {
                 Config targetNodeConfig = nodesByID.get(Integer.toString(ownNeighbors.get(i)));
                 int targetNodePort = targetNodeConfig.getPort();
                 String targetNodeHostname = targetNodeConfig.getHostname();
-                String rsp = network.sendTestMessage(message,targetNodeHostname, targetNodePort);
+                String rsp = network.sendTestMessage(message, targetNodeHostname, targetNodePort);
                 //System.out.println("RESP: " + targetNodeHostname + " - " + rsp);
                 Message rspMessage = new Message(rsp);
                 roundMessages.add(rspMessage);
             }
 
-            for(Message m : roundMessages){
-                if(m.getMaxUID() > maxUID){
+            for (Message m : roundMessages) {
+                if (m.getMaxUID() > maxUID) {
                     maxUID = m.getMaxUID();
                     diam = m.getMaxDist() + 1;
                 }
@@ -94,18 +94,22 @@ public class HomeworkDriver {
                     diam = m.getMaxDist();
             }
 
-            if(prevDiam == diam){
+            if (prevDiam == diam) {
                 breakCount++;
             } else {
                 breakCount = 0;
             }
-            if(breakCount > 3){
+            if (breakCount > 3) {
                 network.finishedPeleg();
                 break;
             }
 
             System.out.println("ROUND " + x + ": maxUID: " + maxUID + " | maxDiam: " + diam);
 
+
+            /*
+             * BFS search
+             */
 
             /*
             int recieved = 0;
@@ -145,10 +149,10 @@ public class HomeworkDriver {
         }
         System.out.println("The max UID is: " + maxUID + " and my diam is :" + diam);
 
-        while(true){ //To keep everything running
+        while (true) { //To keep everything running
 
         }
-            // String rsp2 = network.sendTestMessage("Test hello #2",hostName, targetPort);
+        // String rsp2 = network.sendTestMessage("Test hello #2",hostName, targetPort);
 //            while (true) {
 //                PriorityQueue<String> queue = network.getMessageQueue();
 //                if (queue.peek() != null) {
