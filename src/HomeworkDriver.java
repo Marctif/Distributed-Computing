@@ -20,7 +20,7 @@ public class HomeworkDriver {
             nodesByID = nodes.get("id");
             ownConfig = nodesByID.get(args[0]);
         } catch (IOException e) {
-            System.err.println("An error occured while reading the file");
+            System.err.println("An error occurred while reading the file");
         }
 
         int ownUID = 0;
@@ -110,6 +110,7 @@ public class HomeworkDriver {
             /*
              * BFS search
              */
+
 
             /*
             int recieved = 0;
