@@ -30,7 +30,7 @@ public class HomeworkDriver {
         try {
             ownUID = ownConfig.getUID();
             ownPort = ownConfig.getPort();
-            ownHostname = ownConfig.getHostname(); // hostname only contains dcXX part
+            ownHostname = ownConfig.getHostname() + ".utdallas.edu"; // hostname only contains dcXX part
             ownNeighbors = ownConfig.getNeighbors();
         } catch (NullPointerException e) {
             System.err.println(String.format("Error! Could not find hostname in config file for %s.", hostname));
@@ -94,14 +94,16 @@ public class HomeworkDriver {
                     diam = m.getMaxDist();
             }
 
-            if (prevDiam == diam) {
-                breakCount++;
-            } else {
-                breakCount = 0;
-            }
-            if (breakCount > 3) {
-                network.finishedPeleg();
-                break;
+            if(ownUID == maxUID) {
+                if (prevDiam == diam) {
+                    breakCount++;
+                } else {
+                    breakCount = 0;
+                }
+                if (breakCount > 3) {
+                    network.finishedPeleg();
+                    break;
+                }
             }
 
             System.out.println("ROUND " + x + ": maxUID: " + maxUID + " | maxDiam: " + diam);
@@ -147,6 +149,9 @@ public class HomeworkDriver {
 //                prevDiam = diam;
 //                breakCount = 0;
 //            }
+        }
+        if(ownUID == maxUID) {
+            System.out.println("I am the maxUID");
         }
         System.out.println("The max UID is: " + maxUID + " and my diam is :" + diam);
 
