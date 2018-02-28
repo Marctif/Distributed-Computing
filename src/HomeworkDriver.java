@@ -120,15 +120,15 @@ public class HomeworkDriver {
                 }
             }
 
-            System.out.println("ROUND " + x + ": maxUID: " + maxUID + " | maxDiam: " + diam);
+         //   System.out.println("ROUND " + x + ": maxUID: " + maxUID + " | maxDiam: " + diam);
         }
-        if(searchBreak){
-            System.out.println("Leader told me to finish");
-        }
-        if(ownUID == maxUID) {
-            System.out.println("I am the maxUID");
-        }
-        System.out.println("The max UID is: " + maxUID + " and my diam is :" + diam);
+//        if(searchBreak){
+//            System.out.println("Leader told me to finish");
+//        }
+//        if(ownUID == maxUID) {
+//            System.out.println("I am the maxUID");
+//        }
+        //System.out.println("The max UID is: " + maxUID + " and my diam is :" + diam);
 
         /*
          * BFS search
@@ -136,6 +136,7 @@ public class HomeworkDriver {
 
         int bfsRounds = diam * 2;
         int degree = -1;
+        int maxSeenDegree = -1;
         boolean broadcast = false;
         String parent = null;
         int parentId = -1;
@@ -150,9 +151,9 @@ public class HomeworkDriver {
             } else if (broadcast && y <=diam){
                 message = new Message("search",-1, -1, y); //send it out we got a message and less or equal to diam
             } else if (y > diam){
-                message = new Message("parent",parentId, ownUID, y); // time to broadcast
+                message = new Message("parent,"+maxSeenDegree,parentId, ownUID, y); // time to broadcast
             } else {
-                message = new Message("parent",-1, -1, y); // time to broadcast
+                message = new Message("parent,"+maxSeenDegree,-1, -1, y); // time to broadcast
             }
 
             network.getBFSMessageList().add(message);
@@ -171,13 +172,19 @@ public class HomeworkDriver {
                     parentId = ownNeighbors.get(i);
                     broadcast = true;
                     degree = y;
+                    maxSeenDegree = degree;
                 }
                 roundMessages.add(rspMessage);
             }
-            System.out.println("BFS round " + y);
+            //System.out.println("BFS round " + y);
 
             if(y > diam) {
                 for (Message m : roundMessages) {
+                    String [] tokens = m.getMessageType().split(",");
+                    int mDegree = Integer.parseInt(tokens[1]);
+                    if(mDegree > maxSeenDegree) {
+                        maxSeenDegree = mDegree;
+                    }
                     if(m.getMaxUID() == ownUID){
                         if(!myChildren.contains(m.getMaxDist())){
                             myChildren.add(m.getMaxDist());
@@ -198,6 +205,10 @@ public class HomeworkDriver {
             }
         }
         System.out.println("Degree in tree: " + degree);
+        if(maxUID == ownUID) {
+            System.out.println("I, " + ownUID + ", am the leader and the max degree of any node in the BFS : " + maxSeenDegree);
+
+        }
 
 
         while (true) { //To keep everything running

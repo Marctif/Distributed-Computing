@@ -29,7 +29,7 @@ public class Message
                 this.maxUID = Integer.parseInt(splitMessage[1]);
                 this.maxDist = Integer.parseInt(splitMessage[3]);
                 this.roundNumber = Integer.parseInt(splitMessage[5]);
-            } else if (type.equals("search") || type.equals("parent") || type.equals("sync")) {
+            } else if (type.equals("search") || type.contains("parent") || type.equals("sync")) {
 				this.maxUID = Integer.parseInt(splitMessage[1]);
 				this.maxDist = Integer.parseInt(splitMessage[3]);
 				this.roundNumber = Integer.parseInt(splitMessage[5]);
