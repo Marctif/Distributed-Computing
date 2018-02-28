@@ -20,7 +20,9 @@ public class Message
         String type = "";
         if (splitMessage.length >= 8) {
             type = splitMessage[7];
+			this.messageType = type;
         }
+
 
         try {
             if (type.equals("") || type.equals("default")) {
@@ -28,9 +30,9 @@ public class Message
                 this.maxDist = Integer.parseInt(splitMessage[3]);
                 this.roundNumber = Integer.parseInt(splitMessage[5]);
             } else if (type.equals("search") || type.equals("parent") || type.equals("sync")) {
-                this.sender = Integer.parseInt(splitMessage[1]);
-                this.recipient = Integer.parseInt(splitMessage[3]);
-                this.roundNumber = Integer.parseInt(splitMessage[5]);
+				this.maxUID = Integer.parseInt(splitMessage[1]);
+				this.maxDist = Integer.parseInt(splitMessage[3]);
+				this.roundNumber = Integer.parseInt(splitMessage[5]);
             } else {
                 throw new Exception("Message type not known. Got " + messageType + " but can only accept \"\", \"default\", \"search\", \"parent\" and \"sync\"");
             }
@@ -54,11 +56,11 @@ public class Message
      *  - sender: UID of node who sent this message
      *  - recipient: contains the ID of node this message is intended for
      */
-    public Message(String messageType, int roundNumber, int sender, int recipient) {
+    public Message(String messageType, int maxUID, int maxDist, int roundNumber) {
         this.messageType = messageType;
-        this.roundNumber = roundNumber;
-        this.sender = sender;
-        this.recipient = recipient;
+		this.maxUID = maxUID;
+		this.maxDist = maxDist;
+		this.roundNumber = roundNumber;
     }
 
 	public int getMaxUID()
@@ -89,6 +91,10 @@ public class Message
 	public void getRoundNumber(int roundNumber)
 	{
 		this.roundNumber = roundNumber;
+	}
+
+	public String getMessageType() {
+		return this.messageType;
 	}
 
     public String toString() {

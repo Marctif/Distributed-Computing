@@ -15,19 +15,23 @@ public class NetworkManager {
     private String hostname;
     private Queue<String> messageQueue;
     private ArrayList<Message> messageList;
+    private ArrayList<Message> BFSmessageList;
     private boolean pelegDone = false;
+    private boolean beginBFS = false;
 
     public NetworkManager(String hostname, int portNumber) {
         this.portNumber = portNumber;
         this.hostname = hostname;
         messageQueue = new LinkedList<String>();
         messageList = new ArrayList<Message>();
+        BFSmessageList = new ArrayList<Message>();
     }
 
     public Queue<String> getMessageQueue(){
         return messageQueue;
     }
     public ArrayList<Message> getMessageList() { return messageList; }
+    public ArrayList<Message> getBFSMessageList() { return BFSmessageList; }
     public void finishedPeleg(){
         pelegDone = true;
     }
@@ -119,20 +123,30 @@ public class NetworkManager {
                         //System.out.println("SERVER " + line);
                         messageQueue.add(line);
 
-                    /**
-                     * TODO add array list of values for round and reply with your stuff not the line
-                     *
-                     */
-                    while(true) {
-                        try{
-                            if(!pelegDone)
-                                out.println(messageList.get(m.getRoundNumber() - 1));
-                            else
-                                out.println(messageList.get(messageList.size() - 1));
-                        break;}
-                        catch(IndexOutOfBoundsException ex){
+                    if(m.getMessageType().equals("default") || m.getMessageType().equals("sync")) {
+                        while (true) { //peleg logic
+                            try {
+                                if (!pelegDone)
+                                    out.println(messageList.get(m.getRoundNumber() - 1));
+                                else
+                                    out.println(messageList.get(messageList.size() - 1));
+                                break;
+                            } catch (IndexOutOfBoundsException ex) {
 
+                            }
                         }
+                    } else { //bfs logic
+                        while (true) { //peleg logic
+                            try {
+                                out.println(BFSmessageList.get(m.getRoundNumber() - 1));
+                                break;
+                            } catch (IndexOutOfBoundsException ex) {
+
+                            }
+                        }
+                        //System.out.println(m);
+                        //System.out.println("BFS LOGIC *******************");
+
                     }
                     } else {
                         out.println(line);

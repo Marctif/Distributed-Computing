@@ -58,13 +58,14 @@ public class HomeworkDriver {
         /*
          * Peleg's Algorithm
          */
-        int rounds = 10;
+        int rounds = 1000;
         int numNeighbors = ownNeighbors.size();
         int maxUID = ownUID;
 
         int diam = 0;
 
         int breakCount = 0;
+        boolean searchBreak = false;
 
         for (int x = 1; x <= rounds; x++) {
             //System.out.println("ROUND " + x + ": maxUID: " + maxUID + " | maxDiam: " + diam);
@@ -82,7 +83,18 @@ public class HomeworkDriver {
                 String rsp = network.sendTestMessage(message, targetNodeHostname, targetNodePort);
                 //System.out.println("RESP: " + targetNodeHostname + " - " + rsp);
                 Message rspMessage = new Message(rsp);
+                //System.out.println(rspMessage.getMessageType());
+                if(rspMessage.getMessageType().equals("sync")){
+                    searchBreak = true;
+                }
                 roundMessages.add(rspMessage);
+            }
+
+            if(searchBreak){
+                network.finishedPeleg();
+                Message messageDone = new Message("sync",maxUID, diam, x + 1);
+                network.getMessageList().add(messageDone);
+                break;
             }
 
             for (Message m : roundMessages) {
@@ -100,70 +112,97 @@ public class HomeworkDriver {
                 } else {
                     breakCount = 0;
                 }
-                if (breakCount > 3) {
+                if (breakCount >= 3) {
                     network.finishedPeleg();
+                    Message messageDone = new Message("sync",maxUID, diam, x + 1);
+                    network.getMessageList().add(messageDone);
                     break;
                 }
             }
 
             System.out.println("ROUND " + x + ": maxUID: " + maxUID + " | maxDiam: " + diam);
-
-
-            /*
-             * BFS search
-             */
-
-
-            /*
-            int recieved = 0;
-            while(true) {
-                // Print all messages
-                System.out.println(ownUID + " : waiting for messages"); //Keep this in (things got out of sync when it was left out IDK why)
-                Queue<String> queue = network.getMessageQueue();
-                if (queue.peek() != null) {
-                    String stringMessage = queue.poll();
-                    Message m = new Message(stringMessage);
-
-                    if (m.getRoundNumber() == x) { //Message from current round
-                        System.out.println("MESSAGE: " + stringMessage);
-                        recieved++;
-                        if (m.getMaxUID() > maxUID) {
-                            maxUID = m.getMaxUID();
-                            diam = m.getMaxDist() + 1;
-                        }
-                        diam = Math.max(diam, m.getMaxDist());
-                    } else { //Push message back into queue for later
-                        queue.add(stringMessage);
-                    }
-                }
-                if(recieved >= numNeighbors)
-                    break;
-            }
-            */
-//            System.out.println(diam + " | " + prevDiam + " | " + breakCount);
-//            if(diam == prevDiam) {
-//                breakCount++;
-//                if(breakCount > 3)
-//                    break;
-//            } else {
-//                prevDiam = diam;
-//                breakCount = 0;
-//            }
+        }
+        if(searchBreak){
+            System.out.println("Leader told me to finish");
         }
         if(ownUID == maxUID) {
             System.out.println("I am the maxUID");
         }
         System.out.println("The max UID is: " + maxUID + " and my diam is :" + diam);
 
+        /*
+         * BFS search
+         */
+
+        int bfsRounds = diam * 2;
+        int degree = -1;
+        boolean broadcast = false;
+        String parent = null;
+        int parentId = -1;
+        ArrayList<Integer> myChildren = new ArrayList<Integer>();
+
+        for (int y = 1; y <= bfsRounds; y++) {
+            Message message;
+            if(y == 1 && ownUID == maxUID ) { //Leader broadcast
+                message = new Message("search",-1, -1, y); //send it out to start if leader
+                parent = "root";
+                degree = 0;
+            } else if (broadcast && y <=diam){
+                message = new Message("search",-1, -1, y); //send it out we got a message and less or equal to diam
+            } else if (y > diam){
+                message = new Message("parent",parentId, ownUID, y); // time to broadcast
+            } else {
+                message = new Message("parent",-1, -1, y); // time to broadcast
+            }
+
+            network.getBFSMessageList().add(message);
+
+            ArrayList<Message> roundMessages = new ArrayList<Message>();
+
+            // Message all neighbors
+            for (int i = 0; i < ownNeighbors.size(); i++) {
+                Config targetNodeConfig = nodesByID.get(Integer.toString(ownNeighbors.get(i)));
+                int targetNodePort = targetNodeConfig.getPort();
+                String targetNodeHostname = targetNodeConfig.getHostname();
+                String rsp = network.sendTestMessage(message, targetNodeHostname, targetNodePort);
+                Message rspMessage = new Message(rsp);
+                if(rspMessage.getMessageType().equals("search") && parent == null) {
+                    parent = targetNodeHostname;
+                    parentId = ownNeighbors.get(i);
+                    broadcast = true;
+                    degree = y;
+                }
+                roundMessages.add(rspMessage);
+            }
+            System.out.println("BFS round " + y);
+
+            if(y > diam) {
+                for (Message m : roundMessages) {
+                    if(m.getMaxUID() == ownUID){
+                        if(!myChildren.contains(m.getMaxDist())){
+                            myChildren.add(m.getMaxDist());
+                        }
+                    }
+                }
+            }
+
+
+        }
+        System.out.println();
+        System.out.println("Parent: " + parentId);
+        if(myChildren.size() == 0) {
+            System.out.println("No Children");
+        } else {
+            for (Integer i : myChildren) {
+                System.out.println("BFS Child id: " + i);
+            }
+        }
+        System.out.println("Degree in tree: " + degree);
+
+
         while (true) { //To keep everything running
 
         }
-        // String rsp2 = network.sendTestMessage("Test hello #2",hostName, targetPort);
-//            while (true) {
-//                PriorityQueue<String> queue = network.getMessageQueue();
-//                if (queue.peek() != null) {
-//                    System.out.println(queue.poll());
-//                }
-//            }
+
     }
 }
